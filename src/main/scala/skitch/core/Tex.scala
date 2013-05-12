@@ -42,7 +42,7 @@ object Tex {
   //TODO: test!
   def load(loc:FileLocation) = {
     val file = loc.file
-    assert(file.isFile)
+    require(file.isFile, "bad file: %s" format loc)
     val reg = """.*\.(.+?)$""".r
     val path = file.getPath
     val reg(ext) = path

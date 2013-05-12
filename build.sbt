@@ -7,6 +7,7 @@ scalaVersion in ThisBuild := "2.10.0"
 
 libraryDependencies ++= Seq(
   "org.clapper" % "grizzled-slf4j_2.10" % "1.0.1",
+  "ch.qos.logback" % "logback-classic" % "1.0.13",
 //  "org.jbox2d" % "jbox2d" % "2.1.2.2",
 //  "org.jbox2d" % "jbox2d-library" % "2.1.2.2",
 //  "org.jbox2d" % "jbox2d-serialization" % "1.0.0",

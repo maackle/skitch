@@ -1,8 +1,11 @@
 package skitch.core
 
 import skitch.gl
+import grizzled.slf4j.Logging
 
-trait Hook {}
+trait SkitchBase extends Logging
+
+trait Hook extends SkitchBase
 
 trait Update extends Hook {
   def update(dt:Float)
@@ -14,6 +17,10 @@ trait Render extends Hook {
   private[skitch] def __render() = {
     render()
   }
+}
+
+private[skitch] trait ManagedRender extends Render {
+
 }
 
 trait EnterExit extends Hook {

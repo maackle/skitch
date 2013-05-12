@@ -9,18 +9,19 @@ import skitch.vector.vec2
 import skitch.common
 import skitch.core.Update
 import skitch.gfx
+import skitch.Types._
 
 trait Position extends Component { def position: vec }
-trait Position2D extends Component {
+trait Position2D extends Position {
   def position: vec2
 }
 
 trait PositionXY extends Position2D {
-  def x: common.Real
-  def y: common.Real
-  def x_=(x:common.Real)
-  def y_=(y:common.Real)
-  //  var x, y : common.Real
+  def x: Real
+  def y: Real
+  def x_=(x:Real)
+  def y_=(y:Real)
+  //  var x, y : Real
   def position = vec(x,y)
   def position_=(v:vec2) {
     x = v.x
@@ -29,7 +30,7 @@ trait PositionXY extends Position2D {
 }
 
 trait Rotation {
-  def rotation: common.Radian
+  def rotation: Radian
 }
 
 trait Scaling2D {
@@ -48,7 +49,7 @@ trait Acceleration2D extends Component with Velocity2D {
 
 trait Verlet2D extends Acceleration2D with Update {
 
-  private[skitch] override def __update(dt:common.Real) {
+  private[skitch] override def __update(dt:Real) {
     super.__update(dt)
     position += velocity * dt
     velocity += acceleration * dt
@@ -66,7 +67,7 @@ trait Shape2D extends Position2D {
 
 trait CircleShape extends Shape2D {
 
-  def radius:common.Real
+  def radius:Real
 
   def hitTest(point:vec2) = {
     (point - position).lengthSquared < radius * radius
@@ -99,8 +100,8 @@ object RectangleShape {
 
 trait RectangleShape extends ConvexPolygonShape {
 
-  def width:skitch.common.Real
-  def height:common.Real
+  def width: Real
+  def height: Real
 
   def halfWidth = width / 2
   def halfHeight = height / 2

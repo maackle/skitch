@@ -6,9 +6,6 @@ import java.io.File
 
 package object common {
 
-  type Real = Float
-  type Radian = Double
-
   def clamp(amt:Float)(lo:Float, hi:Float) = max(lo, min(hi, amt))
 
   def getURL(path:String) = ClassLoader.getSystemResource(path)

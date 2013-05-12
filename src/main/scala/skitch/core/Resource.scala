@@ -12,21 +12,20 @@ import skitch.gfx.Image
 
 sealed trait ResourceLike {
 
-	private[core] var dependents:Set[ResourceDependency] = Set.empty
+	private[core] var dependents:Set[ResourceDependent] = Set.empty
 
 }
 
-trait ResourceDependency extends ResourceLike {
+trait ResourceDependent extends ResourceLike {
 
-//	def addDependency(reso:Resource[_]) {
-//		reso
-//	}
-	val resourceDependencies:Set[ResourceLike]
+	val resourceDependencies:Iterable[ResourceLike]
 
 	private[core] def __refresh(changed:ResourceLike) {
 		initialize
 		refresh(changed)
 	}
+
+	protected def beforeRefresh(changed:ResourceLike) {}
 	protected def refresh(changed:ResourceLike)
 
 	lazy val initialize = {
@@ -37,25 +36,23 @@ trait ResourceDependency extends ResourceLike {
 }
 
 trait ImageResource extends Resource[Image] {
-  val loadFn = (loc:FileLocation) => Image.load(loc)
-  override def refresh() = {
-//    is.tex.slickTexture.release()
-    super.refresh()
-  }
+	val loadFn = (loc:FileLocation) => Image.load(loc)
+	override def refresh() = {
+		//    is.tex.slickTexture.release()
+		super.refresh()
+	}
 }
 
 trait Resource[T <: Resource.Bound] extends ResourceLike with Logging {
-  import Resource._
-  import ResourceLoader._
+	import Resource._
+	import ResourceLoader._
 
-	type DepSet = Set[ResourceDependency]
+	private var x:T = null.asInstanceOf[T]
 
-  private var x:T = null.asInstanceOf[T]
-
-  protected val loader: ResourceLoader
+	protected val loader: ResourceLoader
 	protected val loadFn: Loader[T]
 
-  val location: FileLocation
+	val location: FileLocation
 
 	def map[A <: Bound](fn:(T=>A)) = {
 		loader.apply[A](location)(loc => {
@@ -78,14 +75,14 @@ trait Resource[T <: Resource.Bound] extends ResourceLike with Logging {
 	}
 
 	private[core] def refresh() = {
-//    SkitchApp.SlickTextureLoader.clear()
 		load()
 		info("resource refreshed: %s" format location.file)
+
+		type DS = Set[ResourceDependent]
 		type R = ResourceLike
-		type DS = Set[ResourceDependency]
-		def traverse(relationship:(DS, R)):Seq[(DS, R)] = {
+		def traverse(relationship:(DS, ResourceLike)):Seq[(DS, ResourceLike)] = {
 			relationship match {
-				case (dependents:DS, res:R) =>
+				case (dependents:DS, res:ResourceLike) =>
 					dependents.toSeq.flatMap(r => traverse((r.dependents, res)))
 				case _ => Seq()
 			}
@@ -105,6 +102,6 @@ trait Resource[T <: Resource.Bound] extends ResourceLike with Logging {
 
 object Resource extends Logging {
 
-  type Bound = AnyRef
+	type Bound = AnyRef
 
 }

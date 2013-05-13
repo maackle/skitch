@@ -20,6 +20,7 @@ trait Rect {
 	def dimensions = (width, height)
 
 	def copy() = Rect(x0, y0, x1, y1)
+	def scaled(by:Float) = Rect(x0*by, y0*by, x1*by, y1*by)
 
 }
 

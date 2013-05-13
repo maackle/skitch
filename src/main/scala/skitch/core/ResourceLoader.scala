@@ -9,199 +9,208 @@ import scala.collection.JavaConversions
 import JavaConversions._
 import skitch.helpers.FileLocation
 import skitch.gfx.Image
+import org.lwjgl.opengl.Display
 
 
 object ResourceLoader {
-  type Loader[T <: Resource.Bound] = FileLocation => T
-  type Res = Resource[ _ <: Resource.Bound]
+	type Loader[T <: Resource.Bound] = FileLocation => T
+	type Res = Resource[ _ <: Resource.Bound]
 
 }
 
 class ResourceLoader(baseDirectory:File)(implicit app:SkitchApp) extends Logging { self =>
 
-  import Resource._
-  import ResourceLoader._
+	import Resource._
+	import ResourceLoader._
 
-  case class Location(path:String) extends FileLocation(getFile(path)) {
-    lazy override val toString = fullPath
-  }
+	case class Location(path:String) extends FileLocation(getFile(path)) {
+		lazy override val toString = fullPath
+	}
 
-  implicit def string2location(path:String) = Location(path)
+	implicit def string2location(path:String) = Location(path)
 
-  private var autoload_? = false
-  private val devmode_? = true  // TODO: allow this to change
-  private var unloaded = Set[Res]()
-  private var pendingRefresh = Set[Res]()
-  private var loaded = Map[String, Res]()
+	private var autoload_? = false
+	private val devmode_? = true  // TODO: allow this to change
+	private var unloaded = Set[Res]()
+	private var pendingRefresh = Set[Res]()
+	private var loaded = Map[String, Res]()
 
-  app._resourceLoaders += this
-//
-//  def apply[T <: Bound](locator:String)(loader: Loader[T]):Resource[T] = {
-//    apply(Location(locator))(loader)
-//  }
+	app._resourceLoaders += this
+	//
+	//  def apply[T <: Bound](locator:String)(loader: Loader[T]):Resource[T] = {
+	//    apply(Location(locator))(loader)
+	//  }
 
-  class ResourceImpl[T <: Bound](val location:FileLocation, val loadFn:Loader[T], val loader:ResourceLoader) extends Resource[T] {
+	class ResourceImpl[T <: Bound](val location:FileLocation, val loadFn:Loader[T], val loader:ResourceLoader) extends Resource[T] {
 
-  }
+	}
 
-  private def register(reso:Res) {
+	private def register(reso:Res) {
 
-    if(autoload_?) {
-      reso.load()
-    } else {
-      unloaded += reso
-    }
-  }
+		if(autoload_?) {
+			reso.load()
+		} else {
+			unloaded += reso
+		}
+	}
 
-  def apply[T <: Bound](path:String)(loadFn: Loader[T]):Resource[T] = apply(Location(path))(loadFn)
+	def apply[T <: Bound](path:String)(loadFn: Loader[T]):Resource[T] = apply(Location(path))(loadFn)
 
-  def apply[T <: Bound](locator:FileLocation)(loadFn: Loader[T]):Resource[T] = {
-    val loc = locator
-    val _loadFn = loadFn
-    val reso = new ResourceImpl[T] (
-      loader = this,
-      location = loc,
-      loadFn = _loadFn
-    )
+	def apply[T <: Bound](locator:FileLocation)(loadFn: Loader[T]):Resource[T] = {
+		val loc = locator
+		val _loadFn = loadFn
+		val reso = new ResourceImpl[T] (
+			loader = this,
+			location = loc,
+			loadFn = _loadFn
+		)
 
-    register(reso)
+		register(reso)
 
-    reso
-  }
+		reso
+	}
 
-  def image(path:String):ImageResource = {
+	def image(path:String):ImageResource = {
 
-    val reso = new ImageResource {
-      val location = Location(path)
-      val loader = self
-    }
-    register(reso)
-    reso
-  }
+		val reso = new ImageResource {
+			val location = Location(path)
+			val loader = self
+		}
+		register(reso)
+		reso
+	}
 
-  def autoload() {
-    autoload_? = true
-    unloaded.toSeq.foreach { r =>
-      r.load()
-      unloaded -= r
-      loaded += (r.location.fullPath -> r)
-    }
-  }
+	def ableToLoad = Display.isCreated
 
-  def getFile(path:String) = {
-    if(devmode_?) {
-      new File(baseDirectory, path)
-    }
-    else {
-      common.getFile(path)
-    }
-  }
+	def autoload() {
+		if(! ableToLoad) {
+			throw new ResourceLoaderException("can't call autoload() before the display is created.")
+		}
+		autoload_? = true
+		unloaded.toSeq.foreach { r =>
+			r.load()
+			unloaded -= r
+			loaded += (r.location.fullPath -> r)
+		}
+	}
 
-  def getInputStream(path:String) = {
-    new FileInputStream( getFile(path) )
-  }
+	def getFile(path:String) = {
+		if(devmode_?) {
+			new File(baseDirectory, path)
+		}
+		else {
+			common.getFile(path)
+		}
+	}
 
-  implicit def path2stream(path:String) = getInputStream(path)
+	def getInputStream(path:String) = {
+		new FileInputStream( getFile(path) )
+	}
 
-  private var watchedDirectories = Set[File](baseDirectory)
+	implicit def path2stream(path:String) = getInputStream(path)
 
-  def watch() {
+	private var watchedDirectories = Set[File](baseDirectory)
 
-    watchThread.start
+	class ResourceLoaderException(msg:String) extends Exception(msg)
 
-    if (watchThread.isAlive) {
-      debug("watch service is running")
-    } else {
-      error("couldn't start watch service")
-    }
-  }
 
-  def update() {
-    for (reso <- pendingRefresh.toSeq; file = reso.location.file if file.isFile && file.length > 0) {
-      reso.refresh()
-      pendingRefresh -= reso
-    }
-  }
+	def watch() {
 
-  protected[skitch] lazy val watchThread = new Thread (
+		watchThread.start
 
-    new Runnable {
+		if (watchThread.isAlive) {
+			debug("watch service is running")
+		} else {
+			error("couldn't start watch service")
+		}
+	}
 
-      def run() {
+	def update() {
+		for (reso <- pendingRefresh.toSeq; file = reso.location.file if file.isFile && file.length > 0) {
+			reso.refresh()
+			pendingRefresh -= reso
+		}
+	}
 
-        import java.nio.file.StandardWatchEventKinds._
+	protected[skitch] lazy val watchThread = new Thread (
 
-        val watcher = FileSystems.getDefault().newWatchService()
+		new Runnable {
 
-        val watched = collection.mutable.Map[WatchKey, File]()
+			def run() {
 
-        def subdirectories(dir:File):Array[File] = {
-          if (! dir.isDirectory) {
-            Array()
-          } else {
-            val these = dir.listFiles().filter(_.isDirectory)
-            these ++ these.flatMap(subdirectories)
-          }
-        }
+				import java.nio.file.StandardWatchEventKinds._
 
-        def watchDir(dir:File) {
-          try {
-            val key = dir.toPath.register(watcher, ENTRY_MODIFY);
-            info("watching directory: %s" format dir)
-            watched(key) = dir
-          } catch {
-            case e:IOException =>
-              error("failed to watch directory: %s" format dir)
-          }
-        }
+				val watcher = FileSystems.getDefault().newWatchService()
 
-        for (dir <- watchedDirectories) {
+				val watched = collection.mutable.Map[WatchKey, File]()
 
-          watchDir(dir)
+				def subdirectories(dir:File):Array[File] = {
+					if (! dir.isDirectory) {
+						Array()
+					} else {
+						val these = dir.listFiles().filter(_.isDirectory)
+						these ++ these.flatMap(subdirectories)
+					}
+				}
 
-          for (sub <- subdirectories(dir)) {
-            watchDir(sub)
-          }
-        }
+				def watchDir(dir:File) {
+					try {
+						val key = dir.toPath.register(watcher, ENTRY_MODIFY);
+						info("watching directory: %s" format dir)
+						watched(key) = dir
+					} catch {
+						case e:IOException =>
+							error("failed to watch directory: %s" format dir)
+					}
+				}
 
-        while(true) {
+				for (dir <- watchedDirectories) {
 
-          val key =  try {
-            watcher.take()
-          } catch {
-            case e:InterruptedException =>
-              info("interrupted")
-              return
-          }
+					watchDir(dir)
 
-          for {
-            event <- key.pollEvents()
-            dir <- watched.get(key)
-            kind = event.kind
-          } {
-            if(kind != OVERFLOW) {
-              val filename = event.asInstanceOf[WatchEvent[Path]].context()
-              val path = dir.toPath.resolve(filename)
-              loaded.get(path.toString).map({ reso =>
-                info("refreshing: " + path)
-                pendingRefresh += reso
-              }).orElse {
-                warn("file change detected, but no match: %s" format path)
-                println(loaded)
-                None
-              }
-            }
-          }
+					for (sub <- subdirectories(dir)) {
+						watchDir(sub)
+					}
+				}
 
-          val valid = key.reset();
-          if (!valid) {
-            return
-          }
+				while(true) {
 
-        }
+					val key =  try {
+						watcher.take()
+					} catch {
+						case e:InterruptedException =>
+							info("interrupted")
+							return
+					}
 
-      }
-    }
-  )
+					for {
+						event <- key.pollEvents()
+						dir <- watched.get(key)
+						kind = event.kind
+					} {
+						if(kind != OVERFLOW) {
+							val filename = event.asInstanceOf[WatchEvent[Path]].context()
+							val path = dir.toPath.resolve(filename)
+							loaded.get(path.toString).map({ reso =>
+								info("refreshing: " + path)
+								pendingRefresh += reso
+							}).orElse {
+								warn("file change detected, but no match: %s" format path)
+								println(loaded)
+								None
+							}
+						}
+					}
+
+					val valid = key.reset();
+					if (!valid) {
+						return
+					}
+
+				}
+
+			}
+		}
+	)
 
 }

@@ -12,20 +12,20 @@ import skitch.common.implicits
 import skitch.{core => plain}
 import skitch.core.{Render, Camera, Rect, SkitchApp}
 
-trait View extends plain.View with Render {
-	def things:Iterable[Thing]
+trait View extends plain.View with Render with ThingManager {
+
 }
 
 //TODO: make a class so user can override render()
 object View2D {
 	def apply(THINGS: Iterable[Thing])(implicit APP:SkitchApp) = new View2D {
 		val app = APP
-		lazy val bounds = app.windowRect.copy()
+		lazy val windowBounds = app.windowRect.copy()
 		def things = THINGS
 	}
 	def apply(BOUNDS:Rect)(THINGS: Iterable[Thing])(implicit APP:SkitchApp) = new View2D {
 		val app = APP
-		val bounds = BOUNDS
+		val windowBounds = BOUNDS
 		def things = THINGS
 	}
 }

@@ -18,12 +18,11 @@ trait StateBase extends plain.StateBase {
 
 }
 
-abstract class SkitchState(val app:SkitchApp) extends StateBase {
+abstract class SkitchState(app:SkitchApp) extends plain.SkitchState(app) with ThingManager {
 
-	protected implicit val _app = app
+//	protected implicit val _app = app
 
-	protected def things:Iterable[Thing]
-	protected def views:Iterable[View]
+	protected def views:Seq[View]
 
 	def backgroundColor:Option[Color]
 

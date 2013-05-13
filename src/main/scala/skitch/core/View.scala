@@ -17,18 +17,20 @@ trait Camera {
 object View2D extends SkitchBase {
 	def apply(implicit APP:SkitchApp) = new View2D {
 		val app = APP
-		def bounds = app.windowRect
+		def windowBounds = app.windowRect
 	}
 	def apply(BOUNDS:Rect)(implicit APP:SkitchApp) = new View2D {
 		val app = APP
-		val bounds = BOUNDS
+		val windowBounds = BOUNDS
 	}
 }
 
 trait View2D  extends View { self =>
 
-	def app:SkitchApp
-	def bounds:Rect
+//	def state:SkitchState
+	def app:SkitchApp// = state.app
+	def windowBounds:Rect
+	def projectionBounds = windowBounds.scaled(app.projectionScale)
 
 	class Camera2D extends Camera {
 		var position: vec2 = vec2.zero//self.bounds.center
@@ -38,23 +40,24 @@ trait View2D  extends View { self =>
 			position = worldPoint
 		}
 	}
+
 	val camera = new Camera2D()
 
 	def apply(drawing: =>Unit) {
 
 		import implicits.float2int
 
-		app.setProjection()
+		setProjection()
 
 		glMatrixMode(GL_MODELVIEW)
 		gl.matrix {
-			gl.translate(self.bounds.center)
+			gl.translate(self.projectionBounds.center)
 			gl.scale(camera.zoom, camera.zoom)
 			gl.translate(-camera.position)
 
-			if(bounds != app.windowRect) {
-				val vec2(x, y) = bounds.bottomLeft
-				val (w, h) = bounds.dimensions
+			if(windowBounds != app.windowRect) {
+				val vec2(x, y) = windowBounds.bottomLeft
+				val (w, h) = windowBounds.dimensions
 				glScissor(x, y, w, h)
 				glEnable(GL_SCISSOR_TEST)
 				//        gl.translate(bounds.center - app.windowRect.center)
@@ -63,11 +66,14 @@ trait View2D  extends View { self =>
 			transforms.update()
 			drawing
 
-			if(bounds != app.windowRect) {
+			if(windowBounds != app.windowRect) {
 				glDisable(GL_SCISSOR_TEST)
 			}
 		}
+	}
 
+	protected[skitch] def setProjection() {
+		app.setProjection()
 	}
 
 	def toWorld(screen: vec2): vec2 = {
@@ -82,45 +88,6 @@ trait View2D  extends View { self =>
 		vec(position.get(0), position.get(1))
 	}
 }
-
-
-
-
-class View3D(val translation:vec3) extends View {
-
-	def initializeCamera = {
-		val vec3(eyeX, eyeY, eyeZ) = translation
-		GLU.gluLookAt(
-			eyeX,eyeY,eyeZ,
-			0,0,0,
-			0,1,0
-		)
-	}
-
-	def apply(drawing: =>Unit) {
-		gl.matrix {
-			gl.translate(translation)
-			transforms.update()
-			drawing
-		}
-	}
-
-	def toWorld(screen: vec2, winZ:Float): vec3 = {
-		//    transforms.update() // TODO: Remove
-		import transforms._
-		GLU.gluUnProject(screen.x, screen.y, winZ, modelview, projection, viewport, position)
-		vec(position.get(0), position.get(1), position.get(2))
-
-	}
-
-	def toScreen(world: vec3): vec2 = {
-		//    transforms.update() // TODO: Remove
-		import transforms._
-		GLU.gluProject(world.x, world.y, world.z, modelview, projection, viewport, position)
-		vec(position.get(0), position.get(1))
-	}
-}
-
 
 
 trait View {

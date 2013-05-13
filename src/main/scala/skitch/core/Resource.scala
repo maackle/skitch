@@ -22,11 +22,11 @@ trait ResourceDependent extends ResourceLike {
 
 	private[core] def __refresh(changed:ResourceLike) {
 		initialize
-		refresh(changed)
+		onRefresh(changed)
 	}
 
 	protected def beforeRefresh(changed:ResourceLike) {}
-	protected def refresh(changed:ResourceLike)
+	protected def onRefresh(changed:ResourceLike)
 
 	lazy val initialize = {
 		for(reso <- resourceDependencies)
@@ -37,10 +37,10 @@ trait ResourceDependent extends ResourceLike {
 
 trait ImageResource extends Resource[Image] {
 	val loadFn = (loc:FileLocation) => Image.load(loc)
-	override def refresh() = {
-		//    is.tex.slickTexture.release()
-		super.refresh()
-	}
+	//	override def onRefresh(changed:ResourceLike) = {
+	//		//    is.tex.slickTexture.release()
+	//		super.onRefresh()
+	//	}
 }
 
 trait Resource[T <: Resource.Bound] extends ResourceLike with Logging {
@@ -61,7 +61,14 @@ trait Resource[T <: Resource.Bound] extends ResourceLike with Logging {
 	}
 
 	def is = {
-		if (! isLoaded) throw ResourceAccessException
+		if (! isLoaded) {
+			//TODO: this is perhaps a convenient feature, but might be better to make the user explicitly call autoload()...
+			if (loader.ableToLoad) {
+				loader.autoload()
+			} else {
+				throw ResourceAccessException
+			}
+		}
 		x
 	}
 

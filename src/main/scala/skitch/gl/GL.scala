@@ -61,6 +61,7 @@ trait GL {
 		}
 	}
 
+	@inline def scale2(s: Float) { glScalef(s, s, 1) }
 	@inline def scale(sx: Float, sy: Float) { glScalef(sx, sy, 1) }
 	@inline def scale(sx: Double, sy: Double) { glScaled(sx, sy, 1) }
 	@inline def scale(sx: Float, sy: Float, sz: Float) { glScalef(sx, sy, sz) }

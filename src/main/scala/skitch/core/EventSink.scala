@@ -5,47 +5,73 @@ import skitch.LWJGLKeyboard
 
 
 object EventHandler {
-  type Partial = PartialFunction[Event, Any]
-  type Lifted = Function[Event, Option[Any]]
-
-  def apply(fn:Partial) = new EventHandler(fn)
+	type Partial = PartialFunction[Event, Any]
+	type Lifted = Function[Event, Option[Any]]
+	lazy val Null = new EventHandler({ case _ => None })
 }
 
-class EventHandler(val lifted:EventHandler.Lifted) {
+class EventHandler(val partial:EventHandler.Partial) extends SkitchBase {
 
-  def this(partial:EventHandler.Partial) = this(partial.lift)
+	import EventHandler._
 
-  def consumeImmediately[A <: Event](ev:A) = {
-    lifted(ev)
-  }
+	lazy val lifted = partial.lift
 
-  def ++(other:EventHandler) = new EventHandler( ev => {
-    lifted(ev).orElse(other.lifted(ev))
-  })
+	def consumeImmediately[A <: Event](ev:A):Option[Any] = {
+		lifted.apply(ev)
+	}
+
+	def ++(other:EventHandler) = new EventHandler(
+		partial.orElse(other.partial)
+	)
 
 }
 
-trait EventSink {
+sealed trait EventSinkBase extends SkitchBase with LWJGLKeyboard {
 
-  val app:SkitchApp
+	val app:SkitchApp
 
-  protected[skitch] var __handler:EventHandler = EventHandler {
-    case KeyDown(LWJGLKeyboard.KEY_ESCAPE) => app.exit()
-  }
+	protected[skitch] var __handler:EventHandler
 
-//  implicit def fn2handler(fn:EventHandler.Partial) = EventHandler(fn)
-  lazy val eventSources = app.defaultEventSources
+	lazy val eventSources = app.defaultEventSources
 
-  def listen(fn:EventHandler.Partial) {
-    __handler = __handler ++ EventHandler(fn)
-  }
+	def listen(fn:EventHandler.Partial) {
+		__handler = new EventHandler(fn) ++ __handler
+	}
 
-  def listenTo(handler:EventHandler) {
-    __handler = __handler ++ handler
+	def listenTo(handler:EventHandler) {
+		__handler = handler ++ __handler
+	}
 
-  }
+	protected[skitch] def __handleEvents() {
+		eventSources.foreach(_.presentTo(this))
+	}
+}
 
-  protected[skitch] def __handleEvents() {
-    eventSources.foreach(_.presentTo(this))
-  }
+trait EventSink extends EventSinkBase {
+
+	protected[skitch] var __handler:EventHandler = EventHandler.Null
+
+}
+
+trait EventSinkRoot extends EventSinkBase {
+
+	protected[skitch] var __handler:EventHandler = new EventHandler( {
+		case KeyDown(LWJGLKeyboard.KEY_ESCAPE) => app.exit()
+		case _ =>
+	})
+
+	private var sinks:Set[EventSink] = Set.empty
+
+	def listenTo(sinks:EventSink*) {
+		this.sinks ++= sinks
+	}
+
+	def unlistenTo(sinks:EventSink*) {
+		this.sinks --= sinks
+	}
+
+	override protected[skitch] def __handleEvents() {
+		super.__handleEvents()
+		sinks.foreach(_.__handleEvents())
+	}
 }

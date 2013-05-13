@@ -5,23 +5,8 @@ import skitch.Types._
 
 import skitch.core.{components => plain, AutoTransform2D, AutoTransform, Render, managed}
 
-trait Position extends Component with AutoTransform {
-	def position: vec
-}
+trait Position extends plain.Position with AutoTransform
 
-trait Position2D extends Position with AutoTransform2D {
-	def position: vec2
-}
+trait Position2D extends plain.Position2D with AutoTransform2D
 
-trait PositionXY extends Position2D {
-	def x: Real
-	def y: Real
-	def x_=(x:Real)
-	def y_=(y:Real)
-	//  var x, y : Real
-	def position = vec(x,y)
-	def position_=(v:vec2) {
-		x = v.x
-		y = v.y
-	}
-}
+trait PositionXY extends plain.PositionXY with AutoTransform2D

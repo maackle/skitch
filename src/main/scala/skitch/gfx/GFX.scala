@@ -18,7 +18,7 @@ trait GFX extends gl.GL {
   private var circleCache:Map[ Int, VertexList ] = Map()
 
   @inline
-  def bindVertices(verts:Seq[vec2]) {
+  def bindVertices(verts:Array[vec2]) {
     for(v <- verts) vertex(v)
   }
 

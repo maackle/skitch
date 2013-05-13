@@ -27,56 +27,56 @@ trait ImageAnimation extends Animation {
 	def frames:Map[ImageResource, FrameOptions]
 	def images:IndexedSeq[ImageResource]
 }
-
-class SpriteAnimation(var position:vec2, f:(ImageResource, FrameOptions)*) extends SpriteLike with ImageAnimation {
-
-	var scale = vec2.one
-	var rotation = 0.0
-
-	def this(position:vec2, images:Seq[ImageResource], durationMs:Int, offset:vec2=null) = this(position, {
-		val opt = FrameOptions(durationMs, offset)
-		images.map((_, opt))
-	} : _*)
-
-	lazy val images = f.map(_._1).toIndexedSeq
-	lazy val frames = f.toMap
-
-	private val numFrames = images.size
-
-	private var mode = Mode.Loop
-	private var currentIndex = 0
-	//  private var currentOptions:FrameOptions = _
-	private var direction = 1
-	private var advance = true
-	private var lastAdvance = milliseconds
-
-	def image = {
-		images(currentIndex)
-	}
-
-	//TODO: optimize
-	def frame = frames(images(currentIndex))
-	def imageOffset = if(frame.offset==null) vec(image.is.width/2, image.is.height/2) else frame.offset
-
-	def play() { advance = true }
-	def pause() { advance = false }
-
-	def update(dt:Float) {
-		if(advance && milliseconds - lastAdvance > frame.durationMs) {
-			mode match {
-				case Mode.Once => if(currentIndex < numFrames - 1) currentIndex += 1
-				case Mode.Loop =>
-					currentIndex = (currentIndex + direction) % numFrames
-				case Mode.PingPong =>
-					currentIndex = (currentIndex + direction) % numFrames
-					direction = -direction
-			}
-			lastAdvance = milliseconds
-		}
-	}
-
-	def refresh(reso:ResourceLike) {
-		???
-	}
-
-}
+//
+//class SpriteAnimation(var position:vec2, f:(ImageResource, FrameOptions)*) extends SpriteLike with ImageAnimation {
+//
+//	var scale = vec2.one
+//	var rotation = 0.0
+//
+//	def this(position:vec2, images:Seq[ImageResource], durationMs:Int, offset:vec2=null) = this(position, {
+//		val opt = FrameOptions(durationMs, offset)
+//		images.map((_, opt))
+//	} : _*)
+//
+//	lazy val images = f.map(_._1).toIndexedSeq
+//	lazy val frames = f.toMap
+//
+//	private val numFrames = images.size
+//
+//	private var mode = Mode.Loop
+//	private var currentIndex = 0
+//	//  private var currentOptions:FrameOptions = _
+//	private var direction = 1
+//	private var advance = true
+//	private var lastAdvance = milliseconds
+//
+//	def image = {
+//		images(currentIndex)
+//	}
+//
+//	//TODO: optimize
+//	def frame = frames(images(currentIndex))
+//	def imageOffset = if(frame.offset==null) vec(image.is.width/2, image.is.height/2) else frame.offset
+//
+//	def play() { advance = true }
+//	def pause() { advance = false }
+//
+//	def update(dt:Float) {
+//		if(advance && milliseconds - lastAdvance > frame.durationMs) {
+//			mode match {
+//				case Mode.Once => if(currentIndex < numFrames - 1) currentIndex += 1
+//				case Mode.Loop =>
+//					currentIndex = (currentIndex + direction) % numFrames
+//				case Mode.PingPong =>
+//					currentIndex = (currentIndex + direction) % numFrames
+//					direction = -direction
+//			}
+//			lastAdvance = milliseconds
+//		}
+//	}
+//
+//	def onRefresh(reso:ResourceLike) {
+//		???
+//	}
+//
+//}

@@ -1,33 +1,36 @@
 package skitch.gfx
 
-
 import skitch.{common, helpers, gl}
 import skitch.vector.{vec2, vec}
-import skitch.core.{Resource, ResourceLike, ImageResource, Render, ResourceDependent}
+import skitch.core._
 import skitch.helpers.FileLocation
 import skitch.Types._
 
-
 trait SpriteLike extends ResourceDependent with skitch.core.managed.components.Position2D {
 
+	implicit val app:SkitchApp
+
 	def image:ImageResource
+	def dimensionsPx = { image.is.dimensions }
+	def dimensions = { image.is.dimensions * app.projectionScale }
 	val resourceDependencies = Set(image).toSeq
-	def render() { image.option.map(_.render()) }
+	def render() = gl.matrix {
+		gl.scale2(app.projectionScale)
+		image.option.map(_.render())
+	}
+
+	override def translation = position - image.is.origin * app.projectionScale
 }
 
 
-class Sprite(val image:ImageResource, val position:vec2 = vec2.zero, val imageCenterInPixels: vec2 = null) extends SpriteLike {
+trait Sprite extends SpriteLike {
 
-	//TODO: better behavior on reload
+	//TODO: better behavior on refresh
+	//TODO: honestly, don't need this right now, can just merge this into SpriteLike probably...
 
-	val scale = vec2.one
-	var rotation = 0.0
+	val image:ImageResource
 
-	override def translation = position - image.is.origin
-
-	def update(dt:Float) {}
-
-	def refresh(changed:ResourceLike) {
+	def onRefresh(changed:ResourceLike) {
 
 	}
 }

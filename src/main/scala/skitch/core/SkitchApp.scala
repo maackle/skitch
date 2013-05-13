@@ -14,7 +14,7 @@ object SkitchApp {
 	val SlickTextureLoader = InternalTextureLoader.get()
 }
 
-trait SkitchApp extends App {
+trait SkitchApp extends App with SkitchBase {
 
 	val startState:StateBase
 	val windowTitle:String
@@ -48,25 +48,29 @@ trait SkitchApp extends App {
 		Rect(0, 0, w, h)
 	}
 
+	def projectionRect = {
+		val (w, h) = windowSize
+		Rect(0, 0, w*projectionScale, h*projectionScale)
+	}
+
+	val projectionScale:Float
+
+	protected[skitch] def setProjection() {
+		val vec2(x0, y0) = projectionRect.bottomLeft
+		val vec2(x1, y1) = projectionRect.topRight
+		glMatrixMode(GL_PROJECTION)
+		glLoadIdentity()
+		glOrtho(x0, x1, y0, y1, -1, 1)
+	}
+
 	lazy val defaultEventSources = Seq(
 		new KeyEventSource,
 		new MouseEventSource
 	)
 
-	protected[skitch] def setProjection() {
-
-		val vec2(x0, y0) = windowRect.bottomLeft
-		val vec2(x1, y1) = windowRect.topRight
-		glMatrixMode(GL_PROJECTION)
-		glLoadIdentity()
-		//    glOrtho(0, w, 0, h, -1, 1)
-		glOrtho(x0, x1, y0, y1, -1, 1)
-	}
-
-
 	def avgExecutionTime = _executionTime.avg
 	def avgFPS = 1000 / _loopTime.avg
-	def lastFPS = 1000 / _loopTime.now
+	def currentFPS = 1000 / _loopTime.now
 	def ticks = _tick
 	def millis:Int = (common.milliseconds - _startupTime).toInt
 
@@ -74,12 +78,14 @@ trait SkitchApp extends App {
 	def cleanup()
 
 	def loopBody() {
-		val dt = 1 / fps
+		val dt:Float = 1.0f / fps.toFloat
 		_resourceLoaders.foreach(_.update())
+		currentState.beginLoop()
 		currentState.__update(dt)
 		currentState.__render()
 		currentState.eventSources.foreach(_.update(dt))
 		currentState.__handleEvents()
+		currentState.endLoop()
 	}
 
 	def run() {
@@ -92,6 +98,7 @@ trait SkitchApp extends App {
 
 		var _ms = milliseconds
 		while( ! Display.isCloseRequested() && ! __timeToExit ) {
+			assert(fps > 0)
 			val loopStartTime = milliseconds
 			loopBody()
 			_tick += 1
@@ -108,7 +115,6 @@ trait SkitchApp extends App {
 				Logger("SkitchApp").debug("ended watch service: %s" format rl)
 			}
 		}
-
 
 		cleanup()
 	}

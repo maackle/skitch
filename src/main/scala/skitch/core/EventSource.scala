@@ -14,7 +14,7 @@ trait EventSource[+Unused <: Event] extends Update { self =>
 
   protected val eventQueue = mutable.ListBuffer[Event]()
 
-  def presentTo(sink:EventSink) {
+  def presentTo(sink:EventSinkBase) {
     for {
       ev <- eventQueue
       op <- sink.__handler.consumeImmediately(ev)

@@ -3,10 +3,11 @@ package skitch.gfx
 import skitch.{common, helpers, gl}
 import skitch.vector.{vec2, vec}
 import skitch.core._
+import skitch.core.components._
 import skitch.helpers.FileLocation
 import skitch.Types._
 
-trait SpriteLike extends ResourceDependent with skitch.core.managed.components.Position2D {
+trait SpriteLike extends ResourceDependent with Position2D with AutoAffine2D {
 
 	implicit val app:SkitchApp
 
@@ -19,7 +20,7 @@ trait SpriteLike extends ResourceDependent with skitch.core.managed.components.P
 		image.option.map(_.render())
 	}
 
-	override def translation = position - image.is.origin * app.projectionScale
+	override def translation = position
 }
 
 

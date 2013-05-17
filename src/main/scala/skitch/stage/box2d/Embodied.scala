@@ -2,14 +2,14 @@ package skitch.stage.box2d
 
 import org.jbox2d.dynamics._
 import org.jbox2d.collision.shapes
-import skitch.core.managed.components.Position2D
 import skitch.vector.vec2
-import skitch.core.components.{Velocity2D, CircleShape}
+import skitch.core.components.{Position2D, Velocity2D, CircleShape}
 import skitch.Types
 import skitch.core.managed.SkitchState
 import org.jbox2d.common.Vec2
+import skitch.core.AutoAffine2D
 
-trait B2Body extends Position2D with Velocity2D with B2Implicits {
+trait Embodied extends Velocity2D with AutoAffine2D with B2Implicits {
 
 	val velocity = vec2.zero
 	val scale = vec2.one
@@ -30,13 +30,13 @@ trait B2Body extends Position2D with Velocity2D with B2Implicits {
 	}
 
 	lazy val warnKinematic = {
-		warn("B2Body update() for kinematic type not implemented")
+		warn("Embodied update() for kinematic type not implemented")
 	}
 
 	val body:Body
 }
 
-object B2Body {
+object Embodied {
 
 	object defaults {
 		val linearDamping = 0f

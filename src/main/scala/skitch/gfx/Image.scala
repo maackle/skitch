@@ -4,6 +4,7 @@ import java.io.{FileInputStream, File}
 import skitch.core.{Resource, Tex, Render}
 import skitch.helpers.FileLocation
 import skitch.vector.{vec2, vec}
+import skitch.gl
 
 
 trait ImageLike extends SubTexture with Render{
@@ -18,7 +19,10 @@ case class Image(tex:Tex, origin:vec2, cliprect:Option[ClipRect]) extends ImageL
 	val (width, height) = (clip.w, clip.h)
 	val dimensions = vec(width, height)
 	val center = dimensions / 2
-	def render() { blit() }
+	def render() = gl.matrix {
+		gl.translate(-origin)
+		blit()
+	}
 	override def toString = "Image(tex=%s, clip=%s)".format(tex, clip)
 }
 

@@ -62,6 +62,6 @@ object DebugDrawGL extends {
 	}
 	def drawString(x:Float, y:Float, s:String, color:Color3f) {notimpl()}
 	def drawTransform(xf:Transform) {
-		Vector(xf.position, vec.polar(10,xf.getAngle))
+		Vector(xf.p, vec.polar(10, xf.q.getAngle))
 	}
 }

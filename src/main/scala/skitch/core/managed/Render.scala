@@ -1,9 +1,9 @@
 package skitch.core.managed
 
 import skitch.{core => plain}
-import skitch.core.AutoTransform
+import skitch.core.AutoAffine
 
-//trait Render extends Hook with plain.Render with AutoTransform {
+//trait Render extends Hook with plain.Render with AutoAffine {
 //
 //	def render()
 //

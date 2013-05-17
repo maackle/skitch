@@ -89,8 +89,8 @@ trait vec2 extends vec {
   }
 
   @inline
-  def angle:Float = {
-    if(x!=0 || y!=0) atan2(y,x).toFloat else 0
+  def angle = {
+    if(x!=0 || y!=0) atan2(y,x) else 0.0
   }
 
   def flipX = vec2(-x, y)

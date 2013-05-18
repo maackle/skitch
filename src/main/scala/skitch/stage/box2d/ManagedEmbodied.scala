@@ -7,15 +7,19 @@ import skitch.core.components.{Position2D, Velocity2D, CircleShape}
 import skitch.Types
 import skitch.core.managed.SkitchState
 import org.jbox2d.common.Vec2
-import skitch.core.AutoAffine2D
+import skitch.core.{SkitchBase, AutoAffine2D}
 
-trait Embodied extends Velocity2D with AutoAffine2D with B2Implicits {
+trait Embodied extends SkitchBase with B2Implicits {
+	val body:Body
+}
 
-	val velocity = vec2.zero
-	val scale = vec2.one
-	var rotation = 0.0
+trait ManagedEmbodied extends Embodied with Velocity2D with AutoAffine2D {
 
-	def world:World
+	val scaling = vec2.one
+
+	def position:vec2 = body.getPosition
+	def velocity:vec2 = body.getLinearVelocity
+	def rotation = body.getAngle
 
 	def update(dt:Float) {
 		body.getType match {
@@ -23,17 +27,15 @@ trait Embodied extends Velocity2D with AutoAffine2D with B2Implicits {
 			case BodyType.KINEMATIC =>
 				warnKinematic
 			case BodyType.DYNAMIC =>
-				position.set(body.getPosition)
-				velocity.set(body.getLinearVelocity)
-				rotation = body.getAngle.toDouble
+//				position.set(body.getPosition)
+//				velocity.set(body.getLinearVelocity)
+//				rotation = body.getAngle.toDouble
 		}
 	}
 
-	lazy val warnKinematic = {
-		warn("Embodied update() for kinematic type not implemented")
+	private lazy val warnKinematic = {
+		warn("ManagedEmbodied update() for kinematic type not implemented")
 	}
-
-	val body:Body
 }
 
 object Embodied {

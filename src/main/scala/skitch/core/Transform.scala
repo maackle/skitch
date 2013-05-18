@@ -6,7 +6,7 @@ import skitch.core.components.{Position, Position2D}
 import skitch.Types._
 import grizzled.slf4j.Logging
 
-trait OpenGLOps extends SkitchBase { self =>
+trait GLOps extends SkitchBase { self =>
 
 	def inject()
 
@@ -17,7 +17,7 @@ trait OpenGLOps extends SkitchBase { self =>
 		}
 	}
 
-	def +(other:OpenGLOps) = new OpenGLOps {
+	def +(other:GLOps) = new GLOps {
 		def inject() {
 			self.inject()
 			other.inject()
@@ -25,22 +25,18 @@ trait OpenGLOps extends SkitchBase { self =>
 	}
 }
 
-object OpenGLOps {
+object GLOps {
 
 	def apply(glBlock: =>Unit) = {
-		new OpenGLOps {
+		new GLOps {
 			def inject() { glBlock }
 		}
 	}
 }
 
-trait Transform extends OpenGLOps {
 
-}
-
-
-trait InternalTransform extends ManagedRender {
-	protected def __transform:OpenGLOps
+trait InternalTransform extends Render {
+	protected def __transform:GLOps
 
 	private [skitch] override def __render() {
 		if(__transform!=null) __transform.apply { super.__render() }
@@ -50,18 +46,18 @@ trait InternalTransform extends ManagedRender {
 
 private[skitch] trait AutoAffine extends InternalTransform with Position {
 	def translation: vec
-	def scale: vec
+	def scaling: vec
 	def rotation: Radian
 }
 
 trait AutoAffine2D extends AutoAffine with Position2D {
 	def translation: vec2 = position
-	def scale: vec2
+	def scaling: vec2
 	def rotation: Radian
 
-	protected val __transform = OpenGLOps {
+	protected val __transform = GLOps {
 		gl.translate(translation)
-		gl.scale(scale)
+		gl.scale(scaling)
 		gl.rotateRad(rotation)
 	}
 

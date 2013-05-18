@@ -17,8 +17,8 @@ import java.awt.font.TextAttribute;
 import java.io.IOException;
 import java.lang.reflect.Field;
 import java.util.*;
-import java.util.List;
 import java.util.Map.Entry;
+import java.util.List;
 
 /**
  * A Slick bitmap font that can display unicode glyphs from a TrueTypeFont.
@@ -119,7 +119,7 @@ public class UnicodeFont implements org.newdawn.slick.Font {
 	private DisplayList eldestDisplayList;
 	
 	/** The map fo the display list generated and cached - modified to allow removal of the oldest entry */
-	private final LinkedHashMap displayLists = new LinkedHashMap(DISPLAY_LIST_CACHE_SIZE, 1, true) {
+	protected final LinkedHashMap displayLists = new LinkedHashMap(DISPLAY_LIST_CACHE_SIZE, 1, true) {
 		protected boolean removeEldestEntry (Entry eldest) {
 			DisplayList displayList = (DisplayList)eldest.getValue();
 			if (displayList != null) eldestDisplayListID = displayList.id;
@@ -422,14 +422,14 @@ public class UnicodeFont implements org.newdawn.slick.Font {
 	public DisplayList drawDisplayList (float x, float y, String text, Color color, int startIndex, int endIndex) {
 		if (text == null) throw new IllegalArgumentException("text cannot be null.");
 		if (text.length() == 0) return EMPTY_DISPLAY_LIST;
-		if (color == null) throw new IllegalArgumentException("color cannot be null.");
 
 		x -= paddingLeft;
 		y -= paddingTop;
 
 		String displayListKey = text.substring(startIndex, endIndex);
 
-		color.bind();
+        if (color!=null)
+		    color.bind();
 		TextureImpl.bindNone();
 
 		DisplayList displayList = null;

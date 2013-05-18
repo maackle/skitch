@@ -28,7 +28,7 @@ trait SkitchApp extends App with SkitchBase {
 
 	InternalTextureLoader.get().setHoldTextureData(false)
 
-	val fps = 60
+	def fps:Int
 	implicit val _app = this
 	private var _tick = 0
 	private val _loopTime, _executionTime = MemDouble(32)

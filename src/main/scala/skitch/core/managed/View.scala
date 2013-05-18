@@ -18,12 +18,13 @@ trait View extends plain.View with Render with ThingManager {
 
 //TODO: make a class so user can override render()
 object View2D {
-	def apply(THINGS: Iterable[Thing])(implicit APP:SkitchApp) = new View2D {
+	def apply(THING:Thing)(implicit app:SkitchApp):View2D = apply(Seq(THING))(app)
+	def apply(THINGS: Iterable[Thing])(implicit APP:SkitchApp):View2D = new View2D {
 		val app = APP
 		lazy val windowBounds = app.windowRect.copy()
 		def things = THINGS
 	}
-	def apply(BOUNDS:Rect)(THINGS: Iterable[Thing])(implicit APP:SkitchApp) = new View2D {
+	def apply(BOUNDS:Rect)(THINGS: Iterable[Thing])(implicit APP:SkitchApp):View2D = new View2D {
 		val app = APP
 		val windowBounds = BOUNDS
 		def things = THINGS

@@ -8,7 +8,6 @@ import skitch.Types
 trait B2World extends SkitchState {
 
 	implicit val world:World
-	val b2scale:Types.Real
 
 	def velocityIterations :Int
 	def positionIterations :Int

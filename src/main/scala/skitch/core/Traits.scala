@@ -19,10 +19,6 @@ trait Render extends Hook {
   }
 }
 
-private[skitch] trait ManagedRender extends Render {
-
-}
-
 trait EnterExit extends Hook {
 
   protected def onEnter()

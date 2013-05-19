@@ -20,7 +20,9 @@ trait StateBase extends plain.StateBase {
 
 abstract class SkitchState(app:SkitchApp) extends plain.SkitchState(app) with ThingManager {
 
-//	protected implicit val _app = app
+	private var _tick = 0
+
+	def ticks = _tick
 
 	protected def views:Seq[View]
 
@@ -28,6 +30,7 @@ abstract class SkitchState(app:SkitchApp) extends plain.SkitchState(app) with Th
 
 	def update(dt: Float) {
 		things.foreach(_.update(dt))
+		_tick += 1
 	}
 
 	def render() {

@@ -14,16 +14,28 @@ trait Camera {
 
 }
 
+class Camera2D extends Camera {
+	var position: vec2 = vec2.zero//self.bounds.center
+	var zoom: Float = 1f
+
+	def centerOn(worldPoint:vec2) {
+		position = worldPoint
+	}
+}
+
 object View2D extends SkitchBase {
-	def apply(implicit APP:SkitchApp) = new View2D {
+	def apply(CAMERA:Camera2D)(implicit APP:SkitchApp) = new View2D {
 		val app = APP
+		val camera = CAMERA
 		def windowBounds = app.windowRect
 	}
-	def apply(BOUNDS:Rect)(implicit APP:SkitchApp) = new View2D {
+	def apply(CAMERA:Camera2D, BOUNDS:Rect)(implicit APP:SkitchApp) = new View2D {
 		val app = APP
+		val camera = CAMERA
 		val windowBounds = BOUNDS
 	}
 }
+
 
 trait View2D  extends View { self =>
 
@@ -32,16 +44,7 @@ trait View2D  extends View { self =>
 	def windowBounds:Rect
 	def projectionBounds = windowBounds.scaled(app.projectionScale)
 
-	class Camera2D extends Camera {
-		var position: vec2 = vec2.zero//self.bounds.center
-		var zoom: Float = 1f
-
-		def centerOn(worldPoint:vec2) {
-			position = worldPoint
-		}
-	}
-
-	val camera = new Camera2D()
+	val camera:Camera2D
 
 	def apply(drawing: =>Unit) {
 

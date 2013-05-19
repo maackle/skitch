@@ -19,6 +19,7 @@ trait ManagedEmbodied extends Embodied with Velocity2D with AutoAffine2D {
 
 	def position:vec2 = body.getPosition
 	def velocity:vec2 = body.getLinearVelocity
+	def velocity_=(v:vec2) { body.setLinearVelocity(v) }
 	def rotation = body.getAngle
 
 	def update(dt:Float) {

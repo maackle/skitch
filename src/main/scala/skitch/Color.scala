@@ -19,8 +19,8 @@ object Color {
   //      def apply(r:Int, g:Int, b:Int) = {
   //         store.getOrElseUpdate(tuple2hex(r,g,b), new Color(r.toFloat/255f, g.toFloat/255f, b.toFloat/255f, 1.0f))
   //      }
-  def apply(r: Float, g: Float, b: Float) = {
-    store.getOrElseUpdate(tuple2hex(r, g, b), new Color(r, g, b))
+  def apply(r: Float, g: Float, b: Float, a: Float = 1.0f) = {
+    store.getOrElseUpdate(tuple2hex(r, g, b, a), new Color(r, g, b, a))
   }
 
   def apply(h: Int) = {

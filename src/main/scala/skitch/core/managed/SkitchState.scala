@@ -26,7 +26,7 @@ abstract class SkitchState(app:SkitchApp) extends plain.SkitchState(app) with Th
 
 	protected def views:Seq[View]
 
-	def backgroundColor:Option[Color]
+	def clearColor:Option[Color]
 
 	def update(dt: Float) {
 		things.foreach(_.update(dt))
@@ -34,10 +34,14 @@ abstract class SkitchState(app:SkitchApp) extends plain.SkitchState(app) with Th
 	}
 
 	def render() {
-		backgroundColor.map { color =>
+		clearColor.map { color =>
 			gl.clear(color)
 		}
 		views.foreach(_.render())
 	}
 
 }
+//
+//abstract class SkitchChildState(val parent:SkitchState) extends SkitchState(parent.app) {
+//
+//}

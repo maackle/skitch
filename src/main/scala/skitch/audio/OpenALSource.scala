@@ -41,12 +41,14 @@ object OpenALSource {
 
 class Sound(ogg:OggResource) extends SoundBase {
 
-	object source {
-		def is = (new OpenALSource).load(ogg.is)
-	}
+//	object source {
+//		def is = (new OpenALSource).load(ogg.is)
+//	}
+
+	val source = ogg.map( d => (new OpenALSource).load(d))
 
 	def playing = source.is.playing
-	def play(forceRestart:Boolean=false) = { source.is.play(forceRestart); this }
+	def play(forceRestart:Boolean=true) = { source.is.play(forceRestart); this }
 	def pause() = { source.is.pause(); this }
 	def stop() = { source.is.stop(); this }
 	def gain(level:Float) = { source.is.gain(level); this }
@@ -129,7 +131,7 @@ class OpenALSource() {
 	def volume(level:Float) = { gain(math.sqrt(level*level).toFloat) }
 	def loop(v:Boolean):OpenALSource = { seti(AL10.AL_LOOPING, if(v) 1 else 0); this }
 	def play(forceRestart:Boolean=true) = {
-		if(forceRestart || !playing) {
+		if(forceRestart || ! playing) {
 			AL10.alSourcePlay(sourcebuf.get(0))
 		}
 		this

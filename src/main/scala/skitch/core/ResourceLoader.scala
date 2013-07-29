@@ -11,8 +11,8 @@ import skitch.helpers.FileLocation
 
 
 object ResourceLoader {
-	type Loader[T <: Resource.Bound] = FileLocation => T
-	type Res = Resource[ _ <: Resource.Bound]
+	type Loader[T] = FileLocation => T
+	type Res = Resource[_]
 
 }
 
@@ -39,19 +39,13 @@ class ResourceLoader(baseDirectory:File)(implicit app:SkitchApp) extends Logging
 	//  def apply[T <: Bound](locator:String)(loader: Loader[T]):Resource[T] = {
 	//    apply(Location(locator))(loader)
 	//  }
-
-	class ResourceImpl[T <: Bound](val location:FileLocation, val loadFn:Loader[T], val loader:ResourceLoader) extends Resource[T] {
-
-	}
-
-	// TODO TODO TODO!!  Need way to derive a resource from another!
 //
-//	class ResourceDerivative[S, T](reso:Resource[S])(loadFunc:(S => T)) extends Resource[T] {
-//		val loader = reso.loader
-//		val location = reso.location
-//		val loadFn = loadFunc(reso.is)
+//	class ResourceImpl[T <: Bound](val location:FileLocation, val loadFn:Loader[T], val loader:ResourceLoader) extends Resource[T] {
 //
 //	}
+
+	// TODO TODO TODO!!  Need way to derive a resource from another!
+
 
 	private def register(reso:Res) {
 		logger.debug("registering %s".format(reso.location))
@@ -77,18 +71,18 @@ class ResourceLoader(baseDirectory:File)(implicit app:SkitchApp) extends Logging
 	}
 
 
-	def apply[T <: Bound](path:String)(loadFn: Loader[T]):Resource[T] = apply(Location(path))(loadFn)
+	def apply[T](path:String)(loadFn: Loader[T]):Resource[T] = apply(Location(path))(loadFn)
 
-	def apply[T <: Bound](location:FileLocation)(loadFn: Loader[T]):Resource[T] = {
+	def apply[T](location:FileLocation)(loadFn: Loader[T]):Resource[T] = {
 
 		doIfFresh[Resource[T]](location) {
 			val loc = location
 			val _loadFn = loadFn
-			val reso = new ResourceImpl[T] (
-				loader = this,
-				location = loc,
-				loadFn = _loadFn
-			)
+			val reso = new PrimaryResource[T] {
+				val loader = self
+				val location = loc
+				val loadFn = _loadFn
+			}
 
 			register(reso)
 

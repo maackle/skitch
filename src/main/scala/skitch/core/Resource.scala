@@ -1,9 +1,5 @@
 package skitch.core
 
-import java.io.{PrintWriter, IOException, FileInputStream, File}
-import java.nio.file.{Path, WatchEvent, WatchKey, FileSystems}
-import skitch.common
-import java.lang.InterruptedException
 import scala.collection.JavaConversions
 import JavaConversions._
 import grizzled.slf4j.Logging
@@ -12,6 +8,7 @@ import skitch.gfx.Image
 import org.lwjgl.opengl.Display
 import skitch.audio.{AudioData, OpenALSource}
 import org.lwjgl.openal.AL
+import skitch.audio.AudioData
 
 sealed trait ResourceLike {
 
@@ -38,7 +35,7 @@ trait ResourceDependent extends ResourceLike {
 
 }
 
-trait ImageResource extends Resource[Image] {
+trait ImageResource extends PrimaryResource[Image] {
 	val loadFn = (loc:FileLocation) => Image.load(loc)
 
 	override def ableToLoad = Display.isCreated
@@ -48,7 +45,7 @@ trait ImageResource extends Resource[Image] {
 	//	}
 }
 
-trait OggResource extends Resource[AudioData] {
+trait OggResource extends PrimaryResource[AudioData] {
 	val loadFn = (loc:FileLocation) => OpenALSource.loadOgg(loc.stream)
 
 	override def ableToLoad = {
@@ -57,47 +54,23 @@ trait OggResource extends Resource[AudioData] {
 
 }
 
-trait Resource[A <: Resource.Bound] extends ResourceLike with Logging {
+trait PrimaryResource[A] extends Resource[A] {
 	import Resource._
 	import ResourceLoader._
 
-	private var x:A = null.asInstanceOf[A]
-
-	protected[core] val loader: ResourceLoader
 	protected val loadFn: Loader[A]
-
-	val location: FileLocation
-
-	def is:A = {
-		if (! isLoaded) {
-			if (ableToLoad) {
-				load()
-			} else {
-				throw ResourceAccessException
-			}
-		}
-		x
-	}
-
-
-//	def derive[B <: Resource.Bound](fn:(A => B)):Resource[B] = {
-//		new loader.ResourceDerivative(this)(fn)
-//	}
-
-	def ableToLoad:Boolean = true
-
-	def option:Option[A] = Option( is )
-
-	def isLoaded = { x != null }
 
 	private[core] def load() = {
 		//TODO: exception for IO error
-		x = loadFn(location)
-		loader.markLoaded(this)
-		logger.info("loaded resource: %s".format(location))
+		if(! isLoaded) {
+			x = loadFn(location)
+			loader.markLoaded(this)
+			logger.info("loaded resource: %s".format(location))
+		}
 	}
 
 	private[core] def refresh() = {
+		unload()
 		load()
 		info("resource refreshed: %s" format location.file)
 
@@ -118,6 +91,61 @@ trait Resource[A <: Resource.Bound] extends ResourceLike with Logging {
 			dep.__refresh(reso)
 		}
 	}
+}
+
+trait DerivedResource[A, B] extends Resource[B] {
+
+	def base:Resource[A]
+
+	val mapper: A=>B
+
+	def load {
+		base.load()
+		x = mapper(base.is)
+	}
+
+	def refresh { base.refresh() }
+
+}
+
+trait Resource[A] extends ResourceLike with Logging { self =>
+	import Resource._
+	import ResourceLoader._
+
+	protected var x:A = null.asInstanceOf[A]
+
+	protected[core] val loader: ResourceLoader
+	val location: FileLocation
+
+	def is:A = {
+		if (! isLoaded) {
+			if (ableToLoad) {
+				load()
+			} else {
+				throw ResourceAccessException
+			}
+		}
+		x
+	}
+
+	def map[B](fn:(A => B)):Resource[B] = {
+		new DerivedResource[A,B] {
+			val base = self
+			val mapper = fn
+			val location = self.location
+			val loader = self.loader
+		}
+	}
+
+	private[core] def load()
+	private[core] def unload() { x = null.asInstanceOf[A] }
+	private[core] def refresh()
+
+	def ableToLoad:Boolean = true
+
+	def option:Option[A] = Option( is )
+
+	def isLoaded = { x != null }
 
 	object ResourceAccessException extends Exception("tried to access resource at '%s' before loading" format location.file)
 
@@ -125,6 +153,5 @@ trait Resource[A <: Resource.Bound] extends ResourceLike with Logging {
 
 object Resource extends Logging {
 
-	type Bound = AnyRef
 
 }

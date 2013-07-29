@@ -9,6 +9,9 @@ import JavaConversions._
 import grizzled.slf4j.Logging
 import skitch.helpers.FileLocation
 import skitch.gfx.Image
+import org.lwjgl.opengl.Display
+import skitch.audio.{AudioData, OpenALSource}
+import org.lwjgl.openal.AL
 
 sealed trait ResourceLike {
 
@@ -37,34 +40,38 @@ trait ResourceDependent extends ResourceLike {
 
 trait ImageResource extends Resource[Image] {
 	val loadFn = (loc:FileLocation) => Image.load(loc)
+
+	override def ableToLoad = Display.isCreated
 	//	override def onRefresh(changed:ResourceLike) = {
 	//		//    is.tex.slickTexture.release()
 	//		super.onRefresh()
 	//	}
 }
 
-trait Resource[T <: Resource.Bound] extends ResourceLike with Logging {
+trait OggResource extends Resource[AudioData] {
+	val loadFn = (loc:FileLocation) => OpenALSource.loadOgg(loc.stream)
+
+	override def ableToLoad = {
+		AL.isCreated
+	}
+
+}
+
+trait Resource[A <: Resource.Bound] extends ResourceLike with Logging {
 	import Resource._
 	import ResourceLoader._
 
-	private var x:T = null.asInstanceOf[T]
+	private var x:A = null.asInstanceOf[A]
 
-	protected val loader: ResourceLoader
-	protected val loadFn: Loader[T]
+	protected[core] val loader: ResourceLoader
+	protected val loadFn: Loader[A]
 
 	val location: FileLocation
 
-	def map[A <: Bound](fn:(T=>A)) = {
-		loader.apply[A](location)(loc => {
-			fn(loadFn(loc))
-		})
-	}
-
-	def is = {
+	def is:A = {
 		if (! isLoaded) {
-			//TODO: this is perhaps a convenient feature, but might be better to make the user explicitly call autoload()...
-			if (loader.ableToLoad) {
-				loader.autoload()
+			if (ableToLoad) {
+				load()
 			} else {
 				throw ResourceAccessException
 			}
@@ -72,13 +79,22 @@ trait Resource[T <: Resource.Bound] extends ResourceLike with Logging {
 		x
 	}
 
-	def option = Option( is )
+
+//	def derive[B <: Resource.Bound](fn:(A => B)):Resource[B] = {
+//		new loader.ResourceDerivative(this)(fn)
+//	}
+
+	def ableToLoad:Boolean = true
+
+	def option:Option[A] = Option( is )
 
 	def isLoaded = { x != null }
 
 	private[core] def load() = {
 		//TODO: exception for IO error
 		x = loadFn(location)
+		loader.markLoaded(this)
+		logger.info("loaded resource: %s".format(location))
 	}
 
 	private[core] def refresh() = {

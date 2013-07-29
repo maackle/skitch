@@ -22,6 +22,15 @@ trait Rect {
 	def copy() = Rect(x0, y0, x1, y1)
 	def scaled(by:Float) = Rect(x0*by, y0*by, x1*by, y1*by)
 
+	def hitTest(point:vec2) = {
+		def halfWidth = width / 2
+		def halfHeight = height / 2
+		val (x0, y0) = (center - vec(halfWidth, halfHeight)).tuple
+		val (x1, y1) = (center + vec(halfWidth, halfHeight)).tuple
+		val (px, py) = point.tuple
+		x0 <= px && px <= x1 && y0 <= py && py <= y1
+	}
+
 }
 
 object Rect {

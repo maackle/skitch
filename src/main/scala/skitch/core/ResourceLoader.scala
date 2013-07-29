@@ -8,8 +8,6 @@ import java.lang.InterruptedException
 import scala.collection.JavaConversions
 import JavaConversions._
 import skitch.helpers.FileLocation
-import skitch.gfx.Image
-import org.lwjgl.opengl.Display
 
 
 object ResourceLoader {
@@ -31,9 +29,10 @@ class ResourceLoader(baseDirectory:File)(implicit app:SkitchApp) extends Logging
 
 	private var autoload_? = false
 	private val devmode_? = true  // TODO: allow this to change
-	private var unloaded = Set[Res]()
+	private var notLoaded = Set[Res]()
 	private var pendingRefresh = Set[Res]()
 	private var loaded = Map[String, Res]()
+	private var registered = Map[FileLocation, Res]()
 
 	app._resourceLoaders += this
 	//
@@ -45,52 +44,102 @@ class ResourceLoader(baseDirectory:File)(implicit app:SkitchApp) extends Logging
 
 	}
 
-	private def register(reso:Res) {
+	// TODO TODO TODO!!  Need way to derive a resource from another!
+//
+//	class ResourceDerivative[S, T](reso:Resource[S])(loadFunc:(S => T)) extends Resource[T] {
+//		val loader = reso.loader
+//		val location = reso.location
+//		val loadFn = loadFunc(reso.is)
+//
+//	}
 
+	private def register(reso:Res) {
+		logger.debug("registering %s".format(reso.location))
 		if(autoload_?) {
 			reso.load()
 		} else {
-			unloaded += reso
+			notLoaded += reso
+		}
+		registered += (reso.location -> reso)
+	}
+
+	private[skitch] def markLoaded(reso:Res) {
+		// TODO maybe this doesn't matter after autoload is invoked?
+		notLoaded -= reso
+		loaded += (reso.location.fullPath -> reso)
+	}
+
+	private def doIfFresh[A](location:FileLocation)(fn: =>A):A = {
+		registered.get(location).map(_.asInstanceOf[A]).getOrElse {
+			logger.info("FRESH! " + location)
+			fn
 		}
 	}
 
+
 	def apply[T <: Bound](path:String)(loadFn: Loader[T]):Resource[T] = apply(Location(path))(loadFn)
 
-	def apply[T <: Bound](locator:FileLocation)(loadFn: Loader[T]):Resource[T] = {
-		val loc = locator
-		val _loadFn = loadFn
-		val reso = new ResourceImpl[T] (
-			loader = this,
-			location = loc,
-			loadFn = _loadFn
-		)
+	def apply[T <: Bound](location:FileLocation)(loadFn: Loader[T]):Resource[T] = {
 
-		register(reso)
+		doIfFresh[Resource[T]](location) {
+			val loc = location
+			val _loadFn = loadFn
+			val reso = new ResourceImpl[T] (
+				loader = this,
+				location = loc,
+				loadFn = _loadFn
+			)
 
-		reso
+			register(reso)
+
+			reso
+		}
 	}
 
 	def image(path:String):ImageResource = {
 
-		val reso = new ImageResource {
-			val location = Location(path)
-			val loader = self
+		doIfFresh[ImageResource](Location(path)) {
+			val reso = new ImageResource {
+				val location = Location(path)
+				val loader = self
+			}
+			register(reso)
+			reso
 		}
-		register(reso)
-		reso
 	}
 
-	def ableToLoad = Display.isCreated
-
-	def autoload() {
-		if(! ableToLoad) {
-			throw new ResourceLoaderException("can't call autoload() before the display is created.")
+	def ogg(path:String):OggResource = {
+		doIfFresh[OggResource](Location(path)) {
+			val reso = new OggResource {
+				val location = Location(path)
+				val loader = self
+			}
+			register(reso)
+			reso
 		}
+	}
+
+	/**
+	 * autoload() immediately loads any registered resources that are marked 'ableToLoad' and instructs ResourceLoader
+	 * to automatically load any future resources registered after this invocation
+	 */
+	def autoload() {
 		autoload_? = true
-		unloaded.toSeq.foreach { r =>
-			r.load()
-			unloaded -= r
-			loaded += (r.location.fullPath -> r)
+		loadAll()
+	}
+
+	/**
+	 * load all unloaded registered resources marked 'ableToLoad'
+	 */
+	def loadAll() {
+		notLoaded.toSeq.foreach { r =>
+			if (r.ableToLoad) {
+				r.load()
+				logger.info("autoloaded %s".format(r.toString))
+			}
+			else {
+				logger.info("didn't autoload %s".format(r.toString))
+			}
 		}
 	}
 

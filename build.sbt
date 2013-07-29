@@ -14,7 +14,8 @@ libraryDependencies ++= Seq(
   "org.urish.openal" % "java-openal" % "1.0.0",
   "org.lwjgl.lwjgl" % "lwjgl" % "2.8.4",
   "org.lwjgl.lwjgl" % "lwjgl_util" % "2.8.4",
-  "org.lwjgl.lwjgl" % "lwjgl-platform" % "2.8.4" classifier "natives-osx" classifier "natives-windows" classifier "natives-linux"
+  "org.lwjgl.lwjgl" % "lwjgl-platform" % "2.8.4" classifier "natives-osx" classifier "natives-windows" classifier "natives-linux",
+  "org.scalatest" %% "scalatest" % "1.9.1" % "test"
 //  "net.java.jinput" % "jinput" % "2.0.5",
 //  "net.java.jinput" % "jinput-platform" % "2.0.5" classifier "natives-osx" classifier "natives-windows" classifier "natives-linux"
 //  "com.googlecode.soundlibs" % "jorbis" % "0.0.17-1"

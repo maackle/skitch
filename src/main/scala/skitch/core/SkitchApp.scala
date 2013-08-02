@@ -14,7 +14,7 @@ object SkitchApp {
 	val SlickTextureLoader = InternalTextureLoader.get()
 }
 
-trait SkitchApp extends App with SkitchBase {
+abstract class SkitchApp extends SkitchBase {
 
 	val startState:StateBase
 	val windowTitle:String
@@ -38,22 +38,29 @@ trait SkitchApp extends App with SkitchBase {
 
 	def exit() { __timeToExit = true }
 
-	def windowSize = {
+	private def windowSize = {
 		assert(Display.isCreated)
 		(Display.getWidth, Display.getHeight)
 	}
 
+	/**
+	 * The window, in screen (pixel) units
+	 * @return
+	 */
 	def windowRect = {
 		val (w, h) = windowSize
 		Rect(0, 0, w, h)
 	}
 
+	/**
+	 * The window, in world units
+	 * @return
+	 */
 	def projectionRect = {
-		val (w, h) = windowSize
-		Rect(0, 0, w*projectionScale, h*projectionScale)
+		Rect(0, 0, windowRect.width * worldScale, windowRect.height * worldScale)
 	}
 
-	val projectionScale:Float
+	val worldScale:Float
 
 	protected[skitch] def setProjection() {
 		val vec2(x0, y0) = projectionRect.bottomLeft
@@ -77,6 +84,11 @@ trait SkitchApp extends App with SkitchBase {
 	def initialize()
 	def cleanup()
 
+	lazy val setup = {
+		skitch.GLDisplay.create(windowTitle, initialWindowSize)
+		skitch.GLView.default2D()
+	}
+
 	def loopBody() {
 		val dt:Float = 1.0f / fps.toFloat
 		_resourceLoaders.foreach(_.update())
@@ -91,8 +103,7 @@ trait SkitchApp extends App with SkitchBase {
 	def run() {
 		import common.milliseconds
 
-		skitch.GLDisplay.create(windowTitle, initialWindowSize)
-		skitch.GLView.default2D()
+		setup
 
 		initialize()
 

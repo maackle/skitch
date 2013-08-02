@@ -22,13 +22,13 @@ object View2D {
 	def apply(CAMERA:Camera2D)(THINGS: Iterable[Thing])(implicit APP:SkitchApp):View2D = new View2D {
 		val app = APP
 		val camera = CAMERA
-		lazy val windowBounds = app.windowRect.copy()
+		lazy val windowRect = app.windowRect.copy()
 		def things = THINGS
 	}
 
 	def apply(BOUNDS:Rect, CAMERA:Camera2D)(THINGS: Iterable[Thing])(implicit APP:SkitchApp):View2D = new View2D {
 		val app = APP
-		val windowBounds = BOUNDS
+		val windowRect = BOUNDS
 		val camera = CAMERA
 		def things = THINGS
 	}

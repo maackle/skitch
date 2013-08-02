@@ -27,12 +27,12 @@ object View2D extends SkitchBase {
 	def apply(CAMERA:Camera2D)(implicit APP:SkitchApp) = new View2D {
 		val app = APP
 		val camera = CAMERA
-		def windowBounds = app.windowRect
+		def windowRect = app.windowRect
 	}
 	def apply(CAMERA:Camera2D, BOUNDS:Rect)(implicit APP:SkitchApp) = new View2D {
 		val app = APP
 		val camera = CAMERA
-		val windowBounds = BOUNDS
+		val windowRect = BOUNDS
 	}
 }
 
@@ -40,9 +40,10 @@ object View2D extends SkitchBase {
 trait View2D  extends View { self =>
 
 //	def state:SkitchState
-	def app:SkitchApp// = state.app
-	def windowBounds:Rect
-	def projectionBounds = windowBounds.scaled(app.projectionScale)
+	implicit def app:SkitchApp// = state.app
+	def windowRect:Rect
+	def projectionBounds = windowRect.scaled(app.worldScale)
+	def viewportRect:Rect = Rect(toWorld(windowRect.bottomLeft), toWorld(windowRect.topRight))
 
 	val camera:Camera2D
 
@@ -58,9 +59,9 @@ trait View2D  extends View { self =>
 			gl.scale(camera.zoom, camera.zoom)
 			gl.translate(-camera.position)
 
-			if(windowBounds != app.windowRect) {
-				val vec2(x, y) = windowBounds.bottomLeft
-				val (w, h) = windowBounds.dimensions
+			if(windowRect != app.windowRect) {
+				val vec2(x, y) = windowRect.bottomLeft
+				val (w, h) = windowRect.dimensions
 				glScissor(x, y, w, h)
 				glEnable(GL_SCISSOR_TEST)
 				//        gl.translate(bounds.center - app.windowRect.center)
@@ -69,7 +70,7 @@ trait View2D  extends View { self =>
 			transforms.update()
 			drawing
 
-			if(windowBounds != app.windowRect) {
+			if(windowRect != app.windowRect) {
 				glDisable(GL_SCISSOR_TEST)
 			}
 		}

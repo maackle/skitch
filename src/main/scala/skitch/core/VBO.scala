@@ -11,7 +11,7 @@ import scala.Some
 import skitch.{common, Color}
 import common._
 import skitch.Color
-import skitch.vector.vec3
+import skitch.vector.{vec2, vec3}
 
 abstract class VboBuffer[+B <: Buffer](val length:Int) {
   val id = GL15.glGenBuffers()
@@ -116,7 +116,7 @@ trait VBO {
 
 object VBO {
 
-  type v = vec3
+  type v = vec2
   val dim = 2
 
   def create(size:Int, useTextures:Boolean=false, useIndices:Boolean=false, useColors:Boolean=false):VBO = {

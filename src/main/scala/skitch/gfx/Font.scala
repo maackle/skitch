@@ -43,7 +43,7 @@ class Font(path:String, size:Int, style:Font.Style.Plain.type = Font.Style.Plain
 
 		skitch.gl.matrix {
 			skitch.gl.translate(pos)
-			skitch.gl.scale2(scale * app.projectionScale)
+			skitch.gl.scale2(scale * app.worldScale)
 			skitch.gl.translate(offset)
 			gl.scale(1,-1)
 			uni.drawString(0, 0, what, null )

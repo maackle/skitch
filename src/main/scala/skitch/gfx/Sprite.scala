@@ -13,10 +13,10 @@ trait SpriteLike extends ResourceDependent with Position2D with AutoAffine2D {
 
 	def image:ImageResource
 	def dimensionsPx = { image.is.dimensions }
-	def dimensions = { image.is.dimensions * app.projectionScale }
+	def dimensions = { image.is.dimensions * app.worldScale }
 	val resourceDependencies = Set(image).toSeq
 	def render() = gl.matrix {
-		gl.scale2(app.projectionScale)
+		gl.scale2(app.worldScale)
 		image.option.map(_.render())
 	}
 

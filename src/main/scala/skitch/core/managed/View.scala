@@ -13,7 +13,7 @@ import skitch.{core => plain}
 import skitch.core._
 
 trait View extends plain.View with Render with ThingManager {
-
+	def update(dt:Float) {}
 }
 
 //TODO: make a class so user can override render()

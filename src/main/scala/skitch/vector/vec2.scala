@@ -106,6 +106,9 @@ trait vec2 extends vec {
   def dot(v:vec2):V = (x*v.x + y*v.y)
 
   @inline
+  def each(fn:V=>V) = vec(fn(x), fn(y))
+
+  @inline
   def unary_- : vec2 = vec2(-x, -y)
 
   @deprecated

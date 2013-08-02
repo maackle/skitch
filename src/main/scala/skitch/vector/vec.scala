@@ -50,8 +50,8 @@ object vec extends Logging { self =>
     def apply(r:Double, t:Radian) = vec2(r*cos(t), r*sin(t))
     def apply(p:(V, Radian)) = vec2(p._1*cos(p._2), p._1*sin(p._2))
     def apply(v:vec2):vec2 = apply(v.length, v.angle)
-    def random(r:Float) = polar(Random.uniform(0,r), Random.uniform(0,math.Pi*2))
-    def random(r:Float, ang0:Radian, ang1:Radian) = polar(Random.uniform(0,r), Random.uniform(ang0, ang1))
+    def random(r:Float, exp:Float=0.5f) = polar(math.pow(Random.uniform(0,1), exp) * r, Random.uniform(0,math.Pi*2))
+    def randomSector(r:Float, ang0:Radian, ang1:Radian, exp:Float=0.5f) = polar(math.pow(Random.uniform(0,1), exp) * r, Random.uniform(ang0, ang1))
   }
 
   /*** 3-D ***/

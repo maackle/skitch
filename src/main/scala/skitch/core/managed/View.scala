@@ -1,19 +1,12 @@
 package skitch.core.managed
 
-import skitch.gl
-import skitch.vector.{vec, vec2, vec3}
-import java.nio.{FloatBuffer, IntBuffer}
-import org.lwjgl.BufferUtils
-import org.lwjgl.opengl.GL11
-import org.lwjgl.util.glu.GLU
-import org.lwjgl.opengl.GL11._
-import org.lwjgl.opengl
-import skitch.common.implicits
 import skitch.{core => plain}
 import skitch.core._
 
 trait View extends plain.View with Render with ThingManager {
-	def update(dt:Float) {}
+	def update(dt:Float) {
+    camera.update(dt)
+  }
 }
 
 //TODO: make a class so user can override render()

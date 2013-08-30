@@ -30,6 +30,7 @@ abstract class SkitchState(app:SkitchApp) extends plain.SkitchState(app) with Th
 
 	def update(dt: Float) {
 		things.foreach(_.update(dt))
+    views.foreach(_.update(dt))
 		_tick += 1
 	}
 

@@ -4,7 +4,7 @@ import java.io.{FileInputStream, File}
 import skitch.core.{Resource, Tex, Render}
 import skitch.helpers.FileLocation
 import skitch.vector.{vec2, vec}
-import skitch.gl
+import skitch.{Color, gl}
 
 
 trait ImageLike extends SubTexture with Render{
@@ -13,7 +13,7 @@ trait ImageLike extends SubTexture with Render{
 	def height:Int
 }
 
-case class Image(tex:Tex, origin:vec2, cliprect:Option[ClipRect]) extends ImageLike {
+case class Image(tex:Tex, origin:vec2, cliprect:Option[ClipRect], var blitColor:Color=Color.white) extends ImageLike {
 
 	lazy val clip = cliprect.getOrElse(ClipRect(0,0,texWidth,texHeight))
 	val (width, height) = (clip.w, clip.h)
@@ -21,6 +21,8 @@ case class Image(tex:Tex, origin:vec2, cliprect:Option[ClipRect]) extends ImageL
 	val center = dimensions / 2
 	def render() = gl.matrix {
 		gl.translate(-origin)
+    blitColor.bind()
+    gl.fill(true)
 		blit()
 	}
 	override def toString = "Image(tex=%s, clip=%s)".format(tex, clip)
@@ -28,15 +30,10 @@ case class Image(tex:Tex, origin:vec2, cliprect:Option[ClipRect]) extends ImageL
 
 object Image {
 
-	def load(loc:FileLocation, origin:vec2, clip:ClipRect) = {
-		new Image(Tex.load(loc), origin, Some(clip))
-	}
-
-	def load(loc:FileLocation, origin:vec2) = new Image(Tex.load(loc), origin, None)
-
-	def load(loc:FileLocation) = {
-		val tex = Tex.load(loc)
-		new Image(tex, tex.dimensions / 2, None)
+	def load(loc:FileLocation, origin:vec2=null, clip:ClipRect=null, blitColor:Color=Color.white) = {
+    val tex = Tex.load(loc)
+    val o = if (origin == null) tex.dimensions / 2 else origin
+		new Image(tex, o, Option(clip), blitColor)
 	}
 
 }

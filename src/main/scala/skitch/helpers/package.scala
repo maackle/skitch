@@ -27,6 +27,11 @@ package object helpers {
 		}
 	}
 
+  def clamp(a:Float)(lo:Float, hi:Float) = {
+    if (a < lo) lo
+    else if (a > hi) hi
+    else a
+  }
 
 	object Radian {
 		val pi = math.Pi

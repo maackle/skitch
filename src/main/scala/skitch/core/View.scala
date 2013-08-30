@@ -12,6 +12,7 @@ import skitch.common.implicits
 
 trait Camera {
 
+  def update(dt:Float) {}
 }
 
 class Camera2D extends Camera {
@@ -21,6 +22,7 @@ class Camera2D extends Camera {
 	def centerOn(worldPoint:vec2) {
 		position = worldPoint
 	}
+
 }
 
 object View2D extends SkitchBase {
@@ -37,12 +39,11 @@ object View2D extends SkitchBase {
 }
 
 
-trait View2D  extends View { self =>
+trait View2D extends View { self =>
 
 //	def state:SkitchState
 	implicit def app:SkitchApp// = state.app
 	def windowRect:Rect
-	def projectionBounds = windowRect.scaled(app.worldScale)
 	def viewportRect:Rect = Rect(toWorld(windowRect.bottomLeft), toWorld(windowRect.topRight))
 
 	val camera:Camera2D
@@ -55,7 +56,7 @@ trait View2D  extends View { self =>
 
 		glMatrixMode(GL_MODELVIEW)
 		gl.matrix {
-			gl.translate(self.projectionBounds.center)
+			gl.translate(windowRect.center * app.worldScale)
 			gl.scale(camera.zoom, camera.zoom)
 			gl.translate(-camera.position)
 
@@ -97,6 +98,8 @@ trait View2D  extends View { self =>
 trait View {
 
 	def apply(drawing: =>Unit)
+
+  def camera:Camera
 
 	object transforms {
 		val viewport:IntBuffer = BufferUtils.createIntBuffer(16)

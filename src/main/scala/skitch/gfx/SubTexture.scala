@@ -36,9 +36,8 @@ trait SubTexture extends Textured {
     vec(vx0, vy1)
   )
 
-  def blit(color:Color = Color.white) {
-    color.bind()
-    gl.fill(true)
+  def blit() {
+
     bindAnd {
 //      vbo.draw(GL_TRIANGLE_FAN)
       oldWay

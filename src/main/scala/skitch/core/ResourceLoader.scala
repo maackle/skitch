@@ -2,12 +2,14 @@ package skitch.core
 
 import grizzled.slf4j.Logging
 import java.io.{IOException, FileInputStream, File}
-import skitch.common
+import skitch.{Color, common}
 import java.nio.file.{Path, WatchEvent, WatchKey, FileSystems}
 import java.lang.InterruptedException
 import scala.collection.JavaConversions
 import JavaConversions._
 import skitch.helpers.FileLocation
+import skitch.vector.vec2
+import skitch.gfx.{Image, ClipRect}
 
 
 object ResourceLoader {
@@ -90,10 +92,11 @@ class ResourceLoader(baseDirectory:File)(implicit app:SkitchApp) extends Logging
 		}
 	}
 
-	def image(path:String):ImageResource = {
+	def image(path:String, origin:vec2=null, clip:ClipRect=null, blitColor:Color=Color.white):ImageResource = {
 
 		doIfFresh[ImageResource](Location(path)) {
 			val reso = new ImageResource {
+        override val loadFn = (loc:FileLocation) => Image.load(loc, origin, clip, blitColor)
 				val location = Location(path)
 				val loader = self
 			}

@@ -92,18 +92,28 @@ class ResourceLoader(baseDirectory:File)(implicit app:SkitchApp) extends Logging
 		}
 	}
 
-	def image(path:String, origin:vec2=null, clip:ClipRect=null, blitColor:Color=Color.white):ImageResource = {
+  def tex(path:String):TexResource = {
+    doIfFresh[TexResource](Location(path)) {
+      val reso = new TexResource {
+        val location: FileLocation = Location(path)
+        protected[core] val loader: ResourceLoader = self
+      }
+      register(reso)
+      reso
+    }
+  }
 
-		doIfFresh[ImageResource](Location(path)) {
-			val reso = new ImageResource {
-        override val loadFn = (loc:FileLocation) => Image.load(loc, origin, clip, blitColor)
-				val location = Location(path)
-				val loader = self
-			}
-			register(reso)
-			reso
-		}
+	def image(path:String)(mapper:(Tex)=>Image = (tex) => Image(tex, tex.dimensions/2)):ImageResource = {
+    val _mapper = mapper
+		new ImageResource {
+      val base:TexResource = tex(path)
+      val mapper: (Tex) => Image = _mapper
+    }
 	}
+
+//  def image(path:String):ImageResource = {
+//    image(path)(Image(_))
+//  }
 
 	def ogg(path:String):OggResource = {
 		doIfFresh[OggResource](Location(path)) {

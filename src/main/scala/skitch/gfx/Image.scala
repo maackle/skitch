@@ -13,7 +13,7 @@ trait ImageLike extends SubTexture with Render{
 	def height:Int
 }
 
-case class Image(tex:Tex, origin:vec2, cliprect:Option[ClipRect], var blitColor:Color=Color.white) extends ImageLike {
+case class Image(tex:Tex, origin:vec2, cliprect:Option[ClipRect]=None, var blitColor:Color=Color.white) extends ImageLike {
 
 	lazy val clip = cliprect.getOrElse(ClipRect(0,0,texWidth,texHeight))
 	val (width, height) = (clip.w, clip.h)

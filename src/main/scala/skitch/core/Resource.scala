@@ -9,6 +9,7 @@ import org.lwjgl.opengl.Display
 import skitch.audio.{AudioData, OpenALSource}
 import org.lwjgl.openal.AL
 import skitch.audio.AudioData
+import org.newdawn.slick.opengl.Texture
 
 sealed trait ResourceLike {
 
@@ -35,14 +36,17 @@ trait ResourceDependent extends ResourceLike {
 
 }
 
-trait ImageResource extends PrimaryResource[Image] {
-	val loadFn = (loc:FileLocation) => Image.load(loc)
+trait TexResource extends PrimaryResource[Tex] {
+  val loadFn = (loc:FileLocation) => Tex.load(loc)
+  override def ableToLoad = Display.isCreated
+  //	override def onRefresh(changed:ResourceLike) = {
+  //		//    is.tex.slickTexture.release()
+  //		super.onRefresh()
+  //	}
+}
 
-	override def ableToLoad = Display.isCreated
-	//	override def onRefresh(changed:ResourceLike) = {
-	//		//    is.tex.slickTexture.release()
-	//		super.onRefresh()
-	//	}
+trait ImageResource extends DerivedResource[Tex, Image] {
+
 }
 
 trait OggResource extends PrimaryResource[AudioData] {
@@ -95,7 +99,11 @@ trait PrimaryResource[A] extends Resource[A] {
 
 trait DerivedResource[A, B] extends Resource[B] {
 
-	def base:Resource[A]
+	val base:Resource[A]
+
+  lazy val location = base.location
+
+  lazy val loader = base.loader
 
 	val mapper: A=>B
 
@@ -132,8 +140,6 @@ trait Resource[A] extends ResourceLike with Logging { self =>
 		new DerivedResource[A,B] {
 			val base = self
 			val mapper = fn
-			val location = self.location
-			val loader = self.loader
 		}
 	}
 

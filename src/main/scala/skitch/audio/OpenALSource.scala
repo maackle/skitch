@@ -45,7 +45,7 @@ class Sound(ogg:OggResource) extends SoundBase {
 //		def is = (new OpenALSource).load(ogg.is)
 //	}
 
-	val source = ogg.map( d => (new OpenALSource).load(d))
+	val source = ogg.map( audioData => (new OpenALSource).load(audioData))
 
 	def playing = source.is.playing
 	def play(forceRestart:Boolean=true) = { source.is.play(forceRestart); this }

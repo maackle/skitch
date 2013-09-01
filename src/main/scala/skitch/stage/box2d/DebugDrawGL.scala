@@ -19,11 +19,12 @@ object DebugDrawGL extends {
 	}
 
 	setFlags(
-//		e_jointBit|
-//        e_pairBit|
-//		e_centerOfMassBit
-		//      e_aabbBit|
-		e_shapeBit
+//		e_jointBit |
+//        e_pairBit |
+//		e_centerOfMassBit |
+		//      e_aabbBit |
+//		e_shapeBit |
+    0
 	)
 	viewport.setYFlip(true)
 	viewport.setExtents(1f, 1f)

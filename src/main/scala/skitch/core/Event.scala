@@ -9,11 +9,11 @@ object Event {
 }
 
 trait Event {
-  def code:Event.Id
+//  def code:Event.Id
 }
 
 trait KeyEvent extends Event {
-  def code:Int
+//  def code:Int
 }
 
 case class KeyHold(code:Int) extends KeyEvent

@@ -28,7 +28,7 @@ trait EventSource[+Unused <: Event] extends Update { self =>
  * maybe passing in a changeable list of all EventSinks,
  * and when it changes, go through and check isDefinedAt for each value
  * */
-class KeyEventSource extends EventSource[KeyEvent] {
+object KeyEventSource extends EventSource[KeyEvent] {
   private val keyState = collection.mutable.Map[Event.Id, MemBoolean]()
   private val downKeys = collection.mutable.Set[Event.Id]()
 
@@ -54,7 +54,7 @@ class KeyEventSource extends EventSource[KeyEvent] {
 }
 
 
-class MouseEventSource extends EventSource[MouseEvent] {
+object MouseEventSource extends EventSource[MouseEvent] {
 
   private val buttonState = collection.mutable.Map[Event.Id, MemBoolean]()
 

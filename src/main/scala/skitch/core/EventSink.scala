@@ -32,7 +32,7 @@ sealed trait EventSinkBase extends SkitchBase with LWJGLKeyboard {
 
 	protected[skitch] var __handler:EventHandler
 
-	lazy val eventSources = app.defaultEventSources
+	def eventSources = app.defaultEventSources
 
 	private var sinks:Set[EventSink] = Set.empty
 
@@ -48,13 +48,17 @@ sealed trait EventSinkBase extends SkitchBase with LWJGLKeyboard {
 		__handler = new EventHandler(fn) ++ __handler
 	}
 
-	def listenTo(handler:EventHandler) {
+	def listenToHandler(handler:EventHandler) {
 		__handler = handler ++ __handler
 	}
 
 	protected[skitch] def __handleEvents() {
 		eventSources.foreach(_.presentTo(this))
 		sinks.foreach(_.__handleEvents())
+	}
+
+	protected[skitch] def __collectEventSources():Set[EventSource[Event]] = {
+		eventSources ++ sinks.flatMap(_.__collectEventSources())
 	}
 }
 

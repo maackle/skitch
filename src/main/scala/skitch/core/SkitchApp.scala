@@ -70,9 +70,9 @@ abstract class SkitchApp extends SkitchBase {
 		glOrtho(x0, x1, y0, y1, -1, 1)
 	}
 
-	lazy val defaultEventSources = Seq(
-		new KeyEventSource,
-		new MouseEventSource
+	lazy val defaultEventSources = Set(
+		KeyEventSource,
+		MouseEventSource
 	)
 
 	def avgExecutionTime = _executionTime.avg
@@ -95,7 +95,7 @@ abstract class SkitchApp extends SkitchBase {
 		currentState.beginLoop()
 		currentState.__update(dt)
 		currentState.__render()
-		currentState.eventSources.foreach(_.update(dt))
+		currentState.__collectEventSources().foreach{ source => source.update(dt) }
 		currentState.__handleEvents()
 		currentState.endLoop()
 	}

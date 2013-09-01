@@ -119,6 +119,10 @@ trait vec2 extends vec {
 
   def nonZero = x != 0 || y != 0
 
+  def virtuallyZero = {
+    math.abs(x) < eps && math.abs(y) < eps
+  }
+
   def tuple = (x,y)
 
   def project(other:vec2):vec2 = {

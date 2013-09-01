@@ -50,7 +50,7 @@ class ResourceLoader(baseDirectory:File)(implicit app:SkitchApp) extends Logging
 
 
 	private def register(reso:Res) {
-		logger.debug("registering %s".format(reso.location))
+		logger.trace("registering %s".format(reso.location))
 		if(autoload_?) {
 			reso.load()
 		} else {
@@ -67,7 +67,7 @@ class ResourceLoader(baseDirectory:File)(implicit app:SkitchApp) extends Logging
 
 	private def doIfFresh[A](location:FileLocation)(fn: =>A):A = {
 		registered.get(location).map(_.asInstanceOf[A]).getOrElse {
-			logger.info("FRESH! " + location)
+			logger.trace("FRESH! " + location)
 			fn
 		}
 	}

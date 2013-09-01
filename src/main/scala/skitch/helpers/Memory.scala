@@ -30,7 +30,7 @@ class Memory[T](val size: Int, default: T) {
 }
 
 
-case class MemBoolean(override val size: Int) extends Memory(size, false) {
+case class MemBoolean(override val size: Int, default:Boolean = false) extends Memory(size, default) {
   def xor = x && !y || y && !x
 
   def xOn = x && !y
